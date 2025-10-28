@@ -40,11 +40,12 @@ async function startServer(): Promise<void> {
     logger.info('Scheduled jobs initialized successfully');
 
     // Start listening
-    const server = app.listen(config.port, () => {
-      logger.info(`Server is running on port ${config.port} in ${config.env} mode`);
-      logger.info(`API Version: ${config.apiVersion}`);
-      logger.info(`Access the API at: http://localhost:${config.port}/api/${config.apiVersion}`);
-    });
+const server = app.listen(config.port, '0.0.0.0', () => {
+  logger.info(`Server is running on port ${config.port} in ${config.env} mode`);
+  logger.info(`API Version: ${config.apiVersion}`);
+  logger.info(`Access the API at: http://0.0.0.0:${config.port}/api/${config.apiVersion}`);
+});
+
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string): Promise<void> => {
