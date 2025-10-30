@@ -4,9 +4,7 @@ import { IChurchAdmin } from '../types';
 import { ApiError } from '../utils/apiError';
 
 export class ChurchAdminModel {
-  /**
-   * Find church admin by ID
-   */
+
   public static async findById(churchAdminId: number): Promise<IChurchAdmin | null> {
     const result = await database.executeQuery<IChurchAdmin>(
       `SELECT * FROM church_admins WHERE church_admin_id = @churchAdminId`,
@@ -16,9 +14,6 @@ export class ChurchAdminModel {
     return result.recordset[0] || null;
   }
 
-  /**
-   * Find church admin by user ID
-   */
   public static async findByUserId(userId: number): Promise<IChurchAdmin | null> {
     const result = await database.executeQuery<IChurchAdmin>(
       `SELECT * FROM church_admins WHERE user_id = @userId`,
@@ -28,9 +23,6 @@ export class ChurchAdminModel {
     return result.recordset[0] || null;
   }
 
-  /**
-   * Find all church admins for a parish
-   */
   public static async findByParishId(parishId: number): Promise<IChurchAdmin[]> {
     const result = await database.executeQuery<IChurchAdmin>(
       `SELECT * FROM church_admins WHERE parish_id = @parishId AND is_active = 1`,
@@ -40,9 +32,6 @@ export class ChurchAdminModel {
     return result.recordset;
   }
 
-  /**
-   * Create a new church admin record
-   */
   public static async create(adminData: {
     user_id: number;
     parish_id: number;
@@ -104,9 +93,6 @@ export class ChurchAdminModel {
     return churchAdmin;
   }
 
-  /**
-   * Update church admin
-   */
   public static async update(
     churchAdminId: number,
     updates: Partial<Omit<IChurchAdmin, 'church_admin_id' | 'user_id' | 'created_at' | 'updated_at'>>
@@ -144,9 +130,6 @@ export class ChurchAdminModel {
     return updated;
   }
 
-  /**
-   * Delete church admin (soft delete)
-   */
   public static async delete(churchAdminId: number): Promise<void> {
     const admin = await this.findById(churchAdminId);
     if (!admin) {
@@ -156,6 +139,13 @@ export class ChurchAdminModel {
     await database.executeQuery(
       `UPDATE church_admins SET is_active = 0, updated_at = GETDATE() WHERE church_admin_id = @churchAdminId`,
       { churchAdminId }
+    );
+  }
+
+  public static async hardDeleteByParishId(parishId: number): Promise<void> {
+    await database.executeQuery(
+      `DELETE FROM church_admins WHERE parish_id = @parishId`,
+      { parishId }
     );
   }
 }

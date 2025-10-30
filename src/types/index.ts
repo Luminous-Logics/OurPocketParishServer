@@ -197,6 +197,13 @@ export interface IFamily {
   created_at: Date;
   updated_at: Date;
   head_of_family?: string;
+  member_count?: number; // Added member count
+  address_line1?: string; // Added address fields from primary contact
+  address_line2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
 }
 
 // Church Admin

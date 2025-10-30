@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { ParishController } from '../controllers/parish.controller';
 import { validate } from '../middleware/validate';
-import { authenticate, requireSuperAdmin, requireChurchAdmin } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
+import { requirePermission } from '../middleware/permission';
 import {
   createParishSchema,
   updateParishSchema,
@@ -43,7 +44,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/PaginatedParishResponse'
  */
-router.get('/', validate(paginationSchema), ParishController.getAll);
+router.get('/', authenticate, requirePermission('VIEW_PARISHES'), validate(paginationSchema), ParishController.getAll);
 
 /**
  * @swagger
@@ -81,7 +82,7 @@ router.get('/', validate(paginationSchema), ParishController.getAll);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/search', validate(searchParishSchema), ParishController.search);
+router.get('/search', authenticate, requirePermission('VIEW_PARISHES'), validate(searchParishSchema), ParishController.search);
 
 /**
  * @swagger
@@ -117,7 +118,7 @@ router.get('/search', validate(searchParishSchema), ParishController.search);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate(parishIdSchema), ParishController.getById);
+router.get('/:id', authenticate, requirePermission('VIEW_PARISHES'), validate(parishIdSchema), ParishController.getById);
 
 /**
  * @swagger
@@ -153,7 +154,7 @@ router.get('/:id', validate(parishIdSchema), ParishController.getById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id/stats', validate(parishIdSchema), ParishController.getStats);
+router.get('/:id/stats', authenticate, requirePermission('VIEW_PARISHES'), validate(parishIdSchema), ParishController.getStats);
 
 /**
  * @swagger
@@ -208,7 +209,7 @@ router.get('/:id/stats', validate(parishIdSchema), ParishController.getStats);
 router.post(
   '/',
   authenticate,
-  requireSuperAdmin,
+  requirePermission('CREATE_PARISH'),
   validate(createParishSchema),
   ParishController.create
 );
@@ -279,7 +280,7 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  requireChurchAdmin,
+  requirePermission('EDIT_PARISH'),
   validate(parishIdSchema),
   validate(updateParishSchema),
   ParishController.update
@@ -337,7 +338,7 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  requireSuperAdmin,
+  requirePermission('DELETE_PARISH'),
   validate(parishIdSchema),
   ParishController.delete
 );

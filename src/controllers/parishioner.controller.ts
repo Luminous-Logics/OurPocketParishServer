@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response, NextFunction } from 'express';
 import { ParishionerModel } from '../models/Parishioner';
 import { ParishModel } from '../models/Parish';
@@ -15,7 +16,11 @@ export class ParishionerController {
   /**
    * Get all parishioners for a specific parish with pagination
    */
-  public static async getByParishId(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async getByParishId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const parishId = parseInt(req.params.parishId);
       const page = parseInt(req.query.page as string) || 1;
@@ -91,7 +96,11 @@ export class ParishionerController {
   /**
    * Get all parishioners for a specific family
    */
-  public static async getByFamilyId(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async getByFamilyId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const familyId = parseInt(req.params.familyId);
 
@@ -187,7 +196,6 @@ export class ParishionerController {
         family_id,
         ...parishionerFields
       } = req.body;
-
       // Check if email already exists
       const existingUser = await UserModel.findByEmail(email);
       if (existingUser) {
@@ -275,6 +283,7 @@ export class ParishionerController {
           parish_id,
           ward_id,
           family_id,
+          phone, // Added phone to parishioner creation
           ...parishionerFields,
         });
       } catch (parishionerError) {
@@ -313,12 +322,51 @@ export class ParishionerController {
         throw ApiError.badRequest('Invalid parishioner ID');
       }
 
-      const updates = req.body;
+      const {
+        email,
+        first_name,
+        last_name,
+        phone,
+        ...parishionerUpdates
+      } = req.body;
 
-      // Get existing parishioner to check parish_id
+      // Get existing parishioner to check parish_id and user_id
       const existingParishioner = await ParishionerModel.findById(parishionerId);
       if (!existingParishioner) {
         throw ApiError.notFound('Parishioner not found');
+      }
+
+      // Get the associated user
+      const existingUser = await UserModel.findById(existingParishioner.user_id);
+      if (!existingUser) {
+        throw ApiError.notFound('Associated user not found');
+      }
+
+      // Prepare user updates
+      const userUpdates: { [key: string]: any } = {};
+      if (email !== undefined) userUpdates.email = email;
+      if (first_name !== undefined) userUpdates.first_name = first_name;
+      if (last_name !== undefined) userUpdates.last_name = last_name;
+      if (phone !== undefined) userUpdates.phone = phone;
+
+      // If email is being updated, check for conflicts
+      if (email && email !== existingUser.email) {
+        const emailConflict = await UserModel.findByEmail(email);
+        if (emailConflict && emailConflict.user_id !== existingUser.user_id) {
+          throw ApiError.conflict('Email is already registered by another user');
+        }
+      }
+
+      // Update user record if there are changes
+      if (Object.keys(userUpdates).length > 0) {
+        await UserModel.update(existingUser.user_id, userUpdates);
+      }
+
+      // Use parishionerUpdates for parishioner model
+      const updates = parishionerUpdates;
+      // If phone is updated, it should also be updated in parishioner model
+      if (phone !== undefined) {
+        updates.phone = phone;
       }
 
       // If ward_id is being updated, verify it
@@ -358,7 +406,11 @@ export class ParishionerController {
         if (existingParishioner.ward_id && existingParishioner.ward_id !== parishioner.ward_id) {
           const oldTotalFamilies = await FamilyModel.countByWardId(existingParishioner.ward_id);
           const oldTotalMembers = await ParishionerModel.countByWardId(existingParishioner.ward_id);
-          await WardModel.updateCounts(existingParishioner.ward_id, oldTotalFamilies, oldTotalMembers);
+          await WardModel.updateCounts(
+            existingParishioner.ward_id,
+            oldTotalFamilies,
+            oldTotalMembers
+          );
         }
       }
 
@@ -408,7 +460,11 @@ export class ParishionerController {
   /**
    * Get all parishioners for a parish (no pagination)
    */
-  public static async getAllByParish(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async getAllByParish(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const parishId = parseInt(req.params.parishId);
 

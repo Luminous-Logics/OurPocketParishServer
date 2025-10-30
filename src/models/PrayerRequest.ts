@@ -1,11 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import database from '../config/database';
 import { IPrayerRequest } from '../types';
 import { ApiError } from '../utils/apiError';
 
 export class PrayerRequestModel {
-  /**
-   * Get church_admin_id from user_id
-   */
   public static async getChurchAdminId(userId: number): Promise<number | undefined> {
     const result = await database.executeQuery<{ church_admin_id: number }>(
       `SELECT church_admin_id FROM church_admins WHERE user_id = @userId AND is_active = 1`,
@@ -15,9 +13,6 @@ export class PrayerRequestModel {
     return result.recordset[0]?.church_admin_id;
   }
 
-  /**
-   * Find prayer request by ID
-   */
   public static async findById(prayerRequestId: number): Promise<IPrayerRequest | null> {
     const result = await database.executeQuery<IPrayerRequest>(
       `SELECT * FROM prayer_requests WHERE prayer_request_id = @prayerRequestId`,
@@ -27,9 +22,6 @@ export class PrayerRequestModel {
     return result.recordset[0] || null;
   }
 
-  /**
-   * Find all prayer requests by parish ID with pagination
-   */
   public static async findByParishId(
     parishId: number,
     page: number = 1,
@@ -48,10 +40,6 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Get active prayer requests (pending + confirmed)
-   * For "Active/New" tab in UI
-   */
   public static async getActiveRequests(parishId: number): Promise<IPrayerRequest[]> {
     const result = await database.executeQuery<IPrayerRequest>(
       `SELECT * FROM prayer_requests
@@ -64,10 +52,6 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Get past prayer requests (completed + cancelled)
-   * For "Past Requests" tab in UI
-   */
   public static async getPastRequests(parishId: number): Promise<IPrayerRequest[]> {
     const result = await database.executeQuery<IPrayerRequest>(
       `SELECT * FROM prayer_requests
@@ -80,9 +64,6 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Count prayer requests by parish ID
-   */
   public static async countByParishId(parishId: number): Promise<number> {
     const result = await database.executeQuery<{ count: number }>(
       `SELECT COUNT(*) as count FROM prayer_requests
@@ -93,9 +74,6 @@ export class PrayerRequestModel {
     return result.recordset[0].count;
   }
 
-  /**
-   * Get prayer requests by status
-   */
   public static async findByStatus(
     parishId: number,
     status: string,
@@ -115,13 +93,7 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Get prayer requests by date
-   */
-  public static async findByDate(
-    parishId: number,
-    bookingDate: Date
-  ): Promise<IPrayerRequest[]> {
+  public static async findByDate(parishId: number, bookingDate: Date): Promise<IPrayerRequest[]> {
     const result = await database.executeQuery<IPrayerRequest>(
       `SELECT * FROM prayer_requests
        WHERE parish_id = @parishId AND booking_date = @bookingDate
@@ -132,9 +104,6 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Get prayer requests by date range
-   */
   public static async findByDateRange(
     parishId: number,
     startDate: Date,
@@ -152,9 +121,6 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Check if a time slot is available
-   */
   public static async isSlotAvailable(
     parishId: number,
     bookingDate: Date,
@@ -185,9 +151,6 @@ export class PrayerRequestModel {
     return result.recordset[0].count === 0;
   }
 
-  /**
-   * Get prayer requests by parishioner
-   */
   public static async findByParishioner(
     parishionerId: number,
     page: number = 1,
@@ -206,9 +169,6 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Create a new prayer request (with optional booking)
-   */
   public static async create(prayerRequestData: {
     parish_id: number;
     requested_by?: number;
@@ -230,17 +190,14 @@ export class PrayerRequestModel {
       );
 
       if (!isAvailable) {
-        throw ApiError.conflict('This prayer slot is already booked. Please select a different time.');
+        throw ApiError.conflict(
+          'This prayer slot is already booked. Please select a different time.'
+        );
       }
     }
 
     // Build dynamic INSERT query
-    const fields: string[] = [
-      'parish_id',
-      'requester_name',
-      'subject',
-      'description',
-    ];
+    const fields: string[] = ['parish_id', 'requester_name', 'subject', 'description'];
     const params: Record<string, any> = {
       parish_id: prayerRequestData.parish_id,
       requester_name: prayerRequestData.requester_name,
@@ -294,12 +251,11 @@ export class PrayerRequestModel {
     return prayerRequest;
   }
 
-  /**
-   * Update prayer request
-   */
   public static async update(
     prayerRequestId: number,
-    updates: Partial<Omit<IPrayerRequest, 'prayer_request_id' | 'parish_id' | 'created_at' | 'updated_at'>>
+    updates: Partial<
+      Omit<IPrayerRequest, 'prayer_request_id' | 'parish_id' | 'created_at' | 'updated_at'>
+    >
   ): Promise<IPrayerRequest> {
     const existingPrayerRequest = await this.findById(prayerRequestId);
     if (!existingPrayerRequest) {
@@ -319,7 +275,9 @@ export class PrayerRequestModel {
       );
 
       if (!isAvailable) {
-        throw ApiError.conflict('This prayer slot is already booked. Please select a different time.');
+        throw ApiError.conflict(
+          'This prayer slot is already booked. Please select a different time.'
+        );
       }
     }
 
@@ -351,9 +309,6 @@ export class PrayerRequestModel {
     return updatedPrayerRequest;
   }
 
-  /**
-   * Update status (approve, confirm, complete, cancel)
-   */
   public static async updateStatus(
     prayerRequestId: number,
     status: string,
@@ -373,25 +328,27 @@ export class PrayerRequestModel {
     return this.update(prayerRequestId, updates);
   }
 
-  /**
-   * Approve prayer request
-   * Changes status from 'pending' to 'confirmed'
-   */
-  public static async approve(prayerRequestId: number, approvedBy?: number): Promise<IPrayerRequest> {
+  public static async approve(
+    prayerRequestId: number,
+    approvedBy?: number
+  ): Promise<IPrayerRequest> {
+    const existing = await this.findById(prayerRequestId);
+    if (!existing) throw ApiError.notFound('Prayer request not found');
+    if (existing.status !== 'pending')
+      throw ApiError.badRequest('Only pending requests can be approved');
+
     return this.updateStatus(prayerRequestId, 'confirmed', approvedBy);
   }
 
-  /**
-   * Close prayer request
-   * Changes status to 'completed'
-   */
   public static async close(prayerRequestId: number): Promise<IPrayerRequest> {
+    const existing = await this.findById(prayerRequestId);
+    if (!existing) throw ApiError.notFound('Prayer request not found');
+    if (!['pending', 'confirmed'].includes(existing.status))
+      throw ApiError.badRequest('Only pending or confirmed requests can be completed');
+
     return this.updateStatus(prayerRequestId, 'completed');
   }
 
-  /**
-   * Delete prayer request (hard delete for this module)
-   */
   public static async delete(prayerRequestId: number): Promise<void> {
     const prayerRequest = await this.findById(prayerRequestId);
     if (!prayerRequest) {
@@ -404,9 +361,6 @@ export class PrayerRequestModel {
     );
   }
 
-  /**
-   * Search prayer requests by subject or description
-   */
   public static async search(parishId: number, searchTerm: string): Promise<IPrayerRequest[]> {
     const result = await database.executeQuery<IPrayerRequest>(
       `SELECT * FROM prayer_requests
@@ -422,25 +376,23 @@ export class PrayerRequestModel {
     return result.recordset;
   }
 
-  /**
-   * Get upcoming prayer requests
-   */
   public static async getUpcoming(parishId: number, limit: number = 10): Promise<IPrayerRequest[]> {
     const result = await database.executeQuery<IPrayerRequest>(
-      `SELECT TOP (@limit) * FROM prayer_requests
-       WHERE parish_id = @parishId
-         AND status IN ('pending', 'confirmed')
-         AND CAST(booking_date AS DATETIME) + CAST(booking_time AS DATETIME) >= GETDATE()
-       ORDER BY booking_date ASC, booking_time ASC`,
+      `SELECT TOP (@limit) *
+     FROM prayer_requests
+     WHERE parish_id = @parishId
+       AND status IN ('pending', 'confirmed')
+       AND (
+         (booking_date > CAST(GETDATE() AS DATE))
+         OR (booking_date = CAST(GETDATE() AS DATE) AND booking_time > CONVERT(TIME, GETDATE()))
+       )
+     ORDER BY booking_date ASC, booking_time ASC`,
       { parishId, limit }
     );
 
     return result.recordset;
   }
 
-  /**
-   * Get prayer request statistics for a parish
-   */
   public static async getStats(parishId: number): Promise<{
     total: number;
     pending: number;
@@ -478,14 +430,6 @@ export class PrayerRequestModel {
     return stats;
   }
 
-  /**
-   * Auto-archive old prayer requests
-   * Automatically completes prayer requests older than specified days
-   * that are still in 'pending' or 'confirmed' status
-   *
-   * @param daysOld - Number of days after which to auto-complete (default: 10)
-   * @returns Number of requests auto-archived
-   */
   public static async autoArchiveOldRequests(daysOld: number = 10): Promise<number> {
     const result = await database.executeQuery<{ affected_rows: number }>(
       `UPDATE prayer_requests

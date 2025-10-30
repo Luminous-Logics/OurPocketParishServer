@@ -7,9 +7,8 @@ export const createParishionerSchema = {
     password: Joi.string().min(8).optional(),
     first_name: Joi.string().min(2).max(100).required(),
     last_name: Joi.string().min(2).max(100).required(),
-    phone: Joi.string().max(20).optional(),
+    phone: Joi.string().max(20).required(),
     profile_image_url: Joi.string().uri().max(500).optional(),
-
     // Parishioner fields
     parish_id: Joi.number().integer().positive().required(),
     ward_id: Joi.number().integer().positive().optional().allow(null),
@@ -42,6 +41,9 @@ export const updateParishionerSchema = {
   body: Joi.object({
     ward_id: Joi.number().integer().positive().optional().allow(null),
     family_id: Joi.number().integer().positive().optional().allow(null),
+     email: Joi.string().email().max(255).optional().allow(null),
+    phone: Joi.string().max(20),
+    profile_image_url: Joi.string().uri().max(500).optional().allow(null),
     middle_name: Joi.string().max(100).optional().allow(null),
     date_of_birth: Joi.date().optional().allow(null),
     gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say').optional().allow(null),
@@ -64,6 +66,8 @@ export const updateParishionerSchema = {
     notes: Joi.string().optional().allow(null),
     registration_date: Joi.date().optional().allow(null),
     is_active: Joi.boolean().optional(),
+    first_name: Joi.string().min(2).max(100).required(),
+    last_name: Joi.string().min(2).max(100).required(),
   }).min(1), // At least one field must be provided
 };
 

@@ -1,30 +1,36 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import database from '../config/database';
 import { IFamily } from '../types';
 import { ApiError } from '../utils/apiError';
 
 export class FamilyModel {
-  /**
-   * Find family by ID
-   */
   public static async findById(familyId: number): Promise<IFamily | null> {
     const result = await database.executeQuery<IFamily>(
-      `SELECT * FROM families WHERE family_id = @familyId`,
+      `SELECT
+         f.*,
+         (SELECT COUNT(*) FROM parishioners WHERE family_id = f.family_id AND is_active = 1) AS member_count
+       FROM families f
+       WHERE f.family_id = @familyId`,
       { familyId }
     );
 
     return result.recordset[0] || null;
   }
 
-  /**
-   * Find all families by parish ID
-   */
-  public static async findByParishId(parishId: number, page: number = 1, limit: number = 20): Promise<IFamily[]> {
+  public static async findByParishId(
+    parishId: number,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<IFamily[]> {
     const offset = (page - 1) * limit;
 
     const result = await database.executeQuery<IFamily>(
-      `SELECT * FROM families
-       WHERE parish_id = @parishId AND is_active = 1
-       ORDER BY family_name ASC
+      `SELECT
+         f.*,
+         (SELECT COUNT(*) FROM parishioners WHERE family_id = f.family_id AND is_active = 1) AS member_count
+       FROM families f
+       WHERE f.parish_id = @parishId AND f.is_active = 1
+       ORDER BY f.family_name ASC
        OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
       { parishId, offset, limit }
     );
@@ -32,16 +38,20 @@ export class FamilyModel {
     return result.recordset;
   }
 
-  /**
-   * Find all families by ward ID
-   */
-  public static async findByWardId(wardId: number, page: number = 1, limit: number = 20): Promise<IFamily[]> {
+  public static async findByWardId(
+    wardId: number,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<IFamily[]> {
     const offset = (page - 1) * limit;
 
     const result = await database.executeQuery<IFamily>(
-      `SELECT * FROM families
-       WHERE ward_id = @wardId AND is_active = 1
-       ORDER BY family_name ASC
+      `SELECT
+         f.*,
+         (SELECT COUNT(*) FROM parishioners WHERE family_id = f.family_id AND is_active = 1) AS member_count
+       FROM families f
+       WHERE f.ward_id = @wardId AND f.is_active = 1
+       ORDER BY f.family_name ASC
        OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
       { wardId, offset, limit }
     );
@@ -49,21 +59,20 @@ export class FamilyModel {
     return result.recordset;
   }
 
-  /**
-   * Get all families for a parish (no pagination)
-   */
   public static async getAllByParish(parishId: number): Promise<IFamily[]> {
     const result = await database.executeQuery<IFamily>(
-      `SELECT * FROM families WHERE parish_id = @parishId AND is_active = 1 ORDER BY family_name ASC`,
+      `SELECT
+         f.*,
+         (SELECT COUNT(*) FROM parishioners WHERE family_id = f.family_id AND is_active = 1) AS member_count
+       FROM families f
+       WHERE f.parish_id = @parishId AND f.is_active = 1
+       ORDER BY f.family_name ASC`,
       { parishId }
     );
 
     return result.recordset;
   }
 
-  /**
-   * Count families by parish ID
-   */
   public static async countByParishId(parishId: number): Promise<number> {
     const result = await database.executeQuery<{ count: number }>(
       `SELECT COUNT(*) as count FROM families WHERE parish_id = @parishId AND is_active = 1`,
@@ -73,9 +82,6 @@ export class FamilyModel {
     return result.recordset[0].count;
   }
 
-  /**
-   * Count families by ward ID
-   */
   public static async countByWardId(wardId: number): Promise<number> {
     const result = await database.executeQuery<{ count: number }>(
       `SELECT COUNT(*) as count FROM families WHERE ward_id = @wardId AND is_active = 1`,
@@ -85,9 +91,6 @@ export class FamilyModel {
     return result.recordset[0].count;
   }
 
-  /**
-   * Create a new family
-   */
   public static async create(familyData: {
     parish_id: number;
     ward_id?: number;
@@ -96,9 +99,13 @@ export class FamilyModel {
     head_of_family?: string;
     home_phone?: string;
     registration_date?: Date;
+    address_line1?: string;
+    address_line2?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postal_code?: string;
   }): Promise<IFamily> {
-    console.log(familyData.head_of_family,"familyData")
-    // Build dynamic INSERT query
     const fields: string[] = ['parish_id', 'family_name'];
     const params: Record<string, any> = {
       parish_id: familyData.parish_id,
@@ -126,10 +133,33 @@ export class FamilyModel {
       fields.push('registration_date');
       params.registration_date = familyData.registration_date;
     }
+    if (familyData.address_line1 !== undefined) {
+      fields.push('address_line1');
+      params.address_line1 = familyData.address_line1;
+    }
+    if (familyData.address_line2 !== undefined) {
+      fields.push('address_line2');
+      params.address_line2 = familyData.address_line2;
+    }
+    if (familyData.city !== undefined) {
+      fields.push('city');
+      params.city = familyData.city;
+    }
+    if (familyData.state !== undefined) {
+      fields.push('state');
+      params.state = familyData.state;
+    }
+    if (familyData.country !== undefined) {
+      fields.push('country');
+      params.country = familyData.country;
+    }
+    if (familyData.postal_code !== undefined) {
+      fields.push('postal_code');
+      params.postal_code = familyData.postal_code;
+    }
+
     const fieldNames = fields.join(', ');
     const fieldParams = fields.map((f) => `@${f}`).join(', ');
-    console.log(fieldParams,"params")
-
     const result = await database.executeQuery<{ family_id: number }>(
       `INSERT INTO families (${fieldNames})
        OUTPUT INSERTED.family_id
@@ -147,12 +177,11 @@ export class FamilyModel {
     return family;
   }
 
-  /**
-   * Update family
-   */
   public static async update(
     familyId: number,
-    updates: Partial<Omit<IFamily, 'family_id' | 'parish_id' | 'created_at' | 'updated_at'>>
+    updates: Partial<
+      Omit<IFamily, 'family_id' | 'parish_id' | 'created_at' | 'updated_at' | 'member_count'>
+    > // Exclude member_count from direct update
   ): Promise<IFamily> {
     const existingFamily = await this.findById(familyId);
     if (!existingFamily) {
@@ -163,7 +192,8 @@ export class FamilyModel {
     const params: Record<string, any> = { familyId };
 
     Object.entries(updates).forEach(([key, value]) => {
-      if (value !== undefined) {
+      // Ensure member_count is not updated directly as it's a derived field
+      if (key !== 'member_count' && value !== undefined) {
         updateFields.push(`${key} = @${key}`);
         params[key] = value;
       }
@@ -187,9 +217,6 @@ export class FamilyModel {
     return updatedFamily;
   }
 
-  /**
-   * Delete family (soft delete)
-   */
   public static async delete(familyId: number): Promise<void> {
     const family = await this.findById(familyId);
     if (!family) {
@@ -202,17 +229,21 @@ export class FamilyModel {
     );
   }
 
-  /**
-   * Search families by name within a parish
-   */
   public static async search(parishId: number, searchTerm: string): Promise<IFamily[]> {
     const result = await database.executeQuery<IFamily>(
-      `SELECT * FROM families
-       WHERE parish_id = @parishId AND is_active = 1 AND (
-         family_name LIKE '%' + @searchTerm + '%' OR
-         head_of_family LIKE '%' + @searchTerm + '%'
+      `SELECT
+         f.*,
+         (SELECT COUNT(*) FROM parishioners WHERE family_id = f.family_id AND is_active = 1) AS member_count
+       FROM families f
+       WHERE f.parish_id = @parishId AND f.is_active = 1 AND (
+         f.family_name LIKE '%' + @searchTerm + '%' OR
+         f.head_of_family LIKE '%' + @searchTerm + '%' OR
+         f.address_line1 LIKE '%' + @searchTerm + '%' OR
+         f.city LIKE '%' + @searchTerm + '%' OR
+         f.state LIKE '%' + @searchTerm + '%' OR
+         f.postal_code LIKE '%' + @searchTerm + '%'
        )
-       ORDER BY family_name ASC`,
+       ORDER BY f.family_name ASC`,
       { parishId, searchTerm }
     );
 

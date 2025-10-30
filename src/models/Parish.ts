@@ -2,6 +2,7 @@
 import database from '../config/database';
 import { IParish } from '../types';
 import { ApiError } from '../utils/apiError';
+import { ChurchAdminModel } from './ChurchAdmin';
 
 export class ParishModel {
   /**
@@ -122,17 +123,62 @@ export class ParishModel {
   /**
    * Delete parish (soft delete)
    */
-  public static async delete(parishId: number): Promise<void> {
+  /**
+   * Permanently delete parish and archive it into deleted_parishes table
+   */
+  public static async delete(parishId: number, deletedBy?: number): Promise<void> {
     const parish = await this.findById(parishId);
     if (!parish) {
       throw ApiError.notFound('Parish not found');
     }
 
+    // Step 1: Delete associated ChurchAdmin records
+    await ChurchAdminModel.hardDeleteByParishId(parishId);
+
+    // Step 2: Insert deleted parish data into deleted_parishes
+ await database.executeQuery(
+  `INSERT INTO deleted_parish (
+    parish_id, parish_name, diocese, address_line1, address_line2, city, state, country,
+    postal_code, phone, email, website_url, established_date, patron_saint, timezone,
+    subscription_plan, subscription_expiry, deleted_by, created_at, updated_at
+  )
+  VALUES (
+    @parish_id, @parish_name, @diocese, @address_line1, @address_line2, @city, @state, @country,
+    @postal_code, @phone, @email, @website_url, @established_date, @patron_saint, @timezone,
+    @subscription_plan, @subscription_expiry, @deleted_by, @created_at, @updated_at
+  )`,
+  {
+    parish_id: parish.parish_id,
+    parish_name: parish.parish_name,
+    diocese: parish.diocese,
+    address_line1: parish.address_line1,
+    address_line2: parish.address_line2,
+    city: parish.city,
+    state: parish.state,
+    country: parish.country,
+    postal_code: parish.postal_code,
+    phone: parish.phone,
+    email: parish.email,
+    website_url: parish.website_url,
+    established_date: parish.established_date,
+    patron_saint: parish.patron_saint,
+    timezone: parish.timezone,
+    subscription_plan: parish.subscription_plan,
+    subscription_expiry: parish.subscription_expiry,
+    deleted_by: deletedBy || null,
+    created_at: parish.created_at,
+    updated_at: parish.updated_at,
+  }
+);
+
+
+    // Step 2: Delete from main parishes table
     await database.executeQuery(
-      `UPDATE parishes SET is_active = 0, updated_at = GETDATE() WHERE parish_id = @parishId`,
-      { parishId }
+      `DELETE FROM parishes WHERE parish_id = @parish_id`,
+      { parish_id: parishId }
     );
   }
+
 
   /**
    * Count all parishes

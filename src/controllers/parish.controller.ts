@@ -114,7 +114,9 @@ export class ParishController {
           // Validate password strength
           const passwordValidation = PasswordUtil.validateStrength(admin_password);
           if (!passwordValidation.isValid) {
-            throw ApiError.badRequest(`Admin password validation failed: ${passwordValidation.errors.join(', ')}`);
+            throw ApiError.badRequest(
+              `Admin password validation failed: ${passwordValidation.errors.join(', ')}`
+            );
           }
 
           // Hash password
@@ -123,10 +125,13 @@ export class ParishController {
           // ✅ STEP 1: Verify CHURCH_ADMIN role exists BEFORE creating user
           const churchAdminRole = await RoleModel.getRoleByCode(SYSTEM_ROLES.CHURCH_ADMIN);
           if (!churchAdminRole) {
-            logger.error('System configuration error: CHURCH_ADMIN role not found during parish creation', {
-              parishId: parish.parish_id,
-              adminEmail: admin_email,
-            });
+            logger.error(
+              'System configuration error: CHURCH_ADMIN role not found during parish creation',
+              {
+                parishId: parish.parish_id,
+                adminEmail: admin_email,
+              }
+            );
             throw ApiError.internal(
               'System configuration error: Unable to create admin user. CHURCH_ADMIN role not found. Please contact support.'
             );
@@ -162,7 +167,10 @@ export class ParishController {
             logger.error('Failed to assign CHURCH_ADMIN role to parish admin', {
               userId: adminUser.user_id,
               roleId: churchAdminRole.role_id,
-              error: roleAssignError instanceof Error ? roleAssignError.message : String(roleAssignError),
+              error:
+                roleAssignError instanceof Error
+                  ? roleAssignError.message
+                  : String(roleAssignError),
             });
             throw ApiError.internal('Failed to assign admin role. Please contact support.');
           }
@@ -201,15 +209,17 @@ export class ParishController {
           : 'Parish created successfully. You can add an admin user later.',
         data: {
           parish,
-          admin: adminUser ? {
-            user_id: adminUser.user_id,
-            email: adminUser.email,
-            first_name: adminUser.first_name,
-            last_name: adminUser.last_name,
-            user_type: adminUser.user_type,
-            role: churchAdmin?.role,
-            is_primary_admin: churchAdmin?.is_primary_admin,
-          } : null,
+          admin: adminUser
+            ? {
+                user_id: adminUser.user_id,
+                email: adminUser.email,
+                first_name: adminUser.first_name,
+                last_name: adminUser.last_name,
+                user_type: adminUser.user_type,
+                role: churchAdmin?.role,
+                is_primary_admin: churchAdmin?.is_primary_admin,
+              }
+            : null,
         },
       });
     } catch (error) {
@@ -252,8 +262,7 @@ export class ParishController {
       if (isNaN(parishId)) {
         throw ApiError.badRequest('Invalid parish ID');
       }
-
-      await ParishModel.delete(parishId);
+      await ParishModel.delete(parishId, req.user?.user_id);
 
       res.json({
         success: true,

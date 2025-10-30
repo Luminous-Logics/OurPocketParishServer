@@ -9,6 +9,12 @@ export const createFamilySchema = {
     home_phone: Joi.string().max(20).optional(),
     registration_date: Joi.date().optional(),
     head_of_family: Joi.string().max(200).optional(),
+    address_line1: Joi.string().max(200).optional(),
+    address_line2: Joi.string().max(200).optional(),
+    city: Joi.string().max(100).optional(),
+    state: Joi.string().max(100).optional(),
+    country: Joi.string().max(100).optional(),
+    postal_code: Joi.string().max(20).optional(),
   }),
 };
 
@@ -20,6 +26,12 @@ export const updateFamilySchema = {
     home_phone: Joi.string().max(20).optional().allow(null),
     registration_date: Joi.date().optional(),
     is_active: Joi.boolean().optional(),
+    address_line1: Joi.string().max(200).optional(),
+    address_line2: Joi.string().max(200).optional(),
+    city: Joi.string().max(100).optional(),
+    state: Joi.string().max(100).optional(),
+    country: Joi.string().max(100).optional(),
+    postal_code: Joi.string().max(20).optional(),
   }).min(1), // At least one field must be provided
 };
 
@@ -99,7 +111,8 @@ export const bulkCreateSchema = {
         // If using existing family (family_id), family_name and registration_date should not be provided
         if (value.family_id && (value.family_name || value.registration_date)) {
           return helpers.error('object.conflict', {
-            message: 'When using existing family (family_id), do not provide family_name or registration_date',
+            message:
+              'When using existing family (family_id), do not provide family_name or registration_date',
           });
         }
         return value;

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { WardController } from '../controllers/ward.controller';
 import { validate } from '../middleware/validate';
-import { authenticate, requireChurchAdmin } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
+import { requirePermission } from '../middleware/permission';
 import {
   createWardSchema,
   updateWardSchema,
@@ -57,7 +58,7 @@ const router = Router();
  *                       priority:
  *                         type: integer
  */
-router.get('/role-types', WardController.getWardRoleTypes);
+router.get('/role-types', authenticate, requirePermission('VIEW_WARDS'), WardController.getWardRoleTypes);
 
 /**
  * @swagger
@@ -123,7 +124,7 @@ router.get('/role-types', WardController.getWardRoleTypes);
  *       409:
  *         description: Role code already exists for this parish
  */
-router.post('/role-types', authenticate, requireChurchAdmin, WardController.createWardRoleType);
+router.post('/role-types', authenticate, requirePermission('CREATE_WARD'), WardController.createWardRoleType);
 
 /**
  * @swagger
@@ -165,7 +166,7 @@ router.post('/role-types', authenticate, requireChurchAdmin, WardController.crea
  *       404:
  *         description: Ward role assignment not found
  */
-router.put('/roles/:wardRoleId', authenticate, requireChurchAdmin, WardController.updateWardRole);
+router.put('/roles/:wardRoleId', authenticate, requirePermission('EDIT_WARD'), WardController.updateWardRole);
 
 /**
  * @swagger
@@ -189,7 +190,7 @@ router.put('/roles/:wardRoleId', authenticate, requireChurchAdmin, WardControlle
  *       404:
  *         description: Ward role assignment not found
  */
-router.delete('/roles/:wardRoleId', authenticate, requireChurchAdmin, WardController.removeWardRole);
+router.delete('/roles/:wardRoleId', authenticate, requirePermission('DELETE_WARD'), WardController.removeWardRole);
 
 /**
  * @swagger
@@ -234,7 +235,7 @@ router.delete('/roles/:wardRoleId', authenticate, requireChurchAdmin, WardContro
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/parish/:parishId', validate(wardsByParishSchema), WardController.getByParishId);
+router.get('/parish/:parishId', authenticate, requirePermission('VIEW_WARDS'), validate(wardsByParishSchema), WardController.getByParishId);
 
 /**
  * @swagger
@@ -266,7 +267,7 @@ router.get('/parish/:parishId', validate(wardsByParishSchema), WardController.ge
  *                   items:
  *                     $ref: '#/components/schemas/Ward'
  */
-router.get('/parish/:parishId/all', WardController.getAllByParish);
+router.get('/parish/:parishId/all', authenticate, requirePermission('VIEW_WARDS'), WardController.getAllByParish);
 
 /**
  * @swagger
@@ -304,7 +305,7 @@ router.get('/parish/:parishId/all', WardController.getAllByParish);
  *                   items:
  *                     $ref: '#/components/schemas/Ward'
  */
-router.get('/parish/:parishId/search', validate(searchWardSchema), WardController.search);
+router.get('/parish/:parishId/search', authenticate, requirePermission('VIEW_WARDS'), validate(searchWardSchema), WardController.search);
 
 /**
  * @swagger
@@ -340,7 +341,7 @@ router.get('/parish/:parishId/search', validate(searchWardSchema), WardControlle
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate(wardIdSchema), WardController.getById);
+router.get('/:id', authenticate, requirePermission('VIEW_WARDS'), validate(wardIdSchema), WardController.getById);
 
 /**
  * @swagger
@@ -398,7 +399,7 @@ router.get('/:id', validate(wardIdSchema), WardController.getById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authenticate, requireChurchAdmin, validate(createWardSchema), WardController.create);
+router.post('/', authenticate, requirePermission('CREATE_WARD'), validate(createWardSchema), WardController.create);
 
 /**
  * @swagger
@@ -445,7 +446,7 @@ router.post('/', authenticate, requireChurchAdmin, validate(createWardSchema), W
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', authenticate, requireChurchAdmin, validate(wardIdSchema), validate(updateWardSchema), WardController.update);
+router.put('/:id', authenticate, requirePermission('EDIT_WARD'), validate(wardIdSchema), validate(updateWardSchema), WardController.update);
 
 /**
  * @swagger
@@ -484,7 +485,7 @@ router.put('/:id', authenticate, requireChurchAdmin, validate(wardIdSchema), val
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', authenticate, requireChurchAdmin, validate(wardIdSchema), WardController.delete);
+router.delete('/:id', authenticate, requirePermission('DELETE_WARD'), validate(wardIdSchema), WardController.delete);
 
 /**
  * @swagger
@@ -528,7 +529,7 @@ router.delete('/:id', authenticate, requireChurchAdmin, validate(wardIdSchema), 
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
  */
-router.patch('/:id/counts', authenticate, requireChurchAdmin, validate(updateWardCountsSchema), WardController.updateCounts);
+router.patch('/:id/counts', authenticate, requirePermission('EDIT_WARD'), validate(updateWardCountsSchema), WardController.updateCounts);
 
 // Ward role routes for /:wardId/roles (these must come after /:id routes)
 /**
@@ -549,7 +550,7 @@ router.patch('/:id/counts', authenticate, requireChurchAdmin, validate(updateWar
  *       200:
  *         description: Ward roles retrieved successfully
  */
-router.get('/:wardId/roles', WardController.getWardRoles);
+router.get('/:wardId/roles', authenticate, requirePermission('VIEW_WARDS'), WardController.getWardRoles);
 
 /**
  * @swagger
@@ -594,7 +595,7 @@ router.get('/:wardId/roles', WardController.getWardRoles);
  *       201:
  *         description: Ward role assigned successfully
  */
-router.post('/:wardId/roles', authenticate, requireChurchAdmin, WardController.assignWardRole);
+router.post('/:wardId/roles', authenticate, requirePermission('MANAGE_WARDS'), WardController.assignWardRole);
 
 /**
  * @swagger
@@ -618,6 +619,6 @@ router.post('/:wardId/roles', authenticate, requireChurchAdmin, WardController.a
  *       200:
  *         description: Ward role members retrieved successfully
  */
-router.get('/:wardId/roles/:roleId/members', WardController.getWardRoleMembers);
+router.get('/:wardId/roles/:roleId/members', authenticate, requirePermission('VIEW_WARDS'), WardController.getWardRoleMembers);
 
 export default router;

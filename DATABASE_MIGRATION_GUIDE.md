@@ -98,7 +98,7 @@ ALTER DATABASE ParishNexusDB SET RECOVERY SIMPLE; -- Development
 -- Database Type: SQL Server
 -- =====================================================
 
-USE OurPocketParish;
+USE OurPocketChurch;
 GO
 
 -- =====================================================
@@ -414,6 +414,13 @@ CREATE TABLE families (
   primary_contact_id BIGINT, -- FK will be added after parishioners table
   home_phone NVARCHAR(20),
   registration_date DATE,
+  [head_of_family] NVARCHAR(200) NULL,
+ address_line1 NVARCHAR(255),
+    address_line2 NVARCHAR(255),
+    city NVARCHAR(100),
+    state NVARCHAR(100),
+    country NVARCHAR(100),
+    postal_code NVARCHAR(20),
   is_active BIT DEFAULT 1,
   created_at DATETIME2 DEFAULT GETDATE(),
   updated_at DATETIME2 DEFAULT GETDATE(),
@@ -454,6 +461,11 @@ CREATE TABLE parishioners (
   emergency_contact_name NVARCHAR(200),
   emergency_contact_phone NVARCHAR(20),
   notes NVARCHAR(MAX),
+    phone  VARCHAR(20) NULL,
+ last_name VARCHAR(100) NULL,
+ first_name VARCHAR(100) NULL,
+  email VARCHAR(255) NULL,
+
   registration_date DATE,
   is_active BIT DEFAULT 1,
   created_at DATETIME2 DEFAULT GETDATE(),
@@ -675,6 +687,36 @@ CREATE INDEX idx_prayer_requests_status ON prayer_requests(status);
 CREATE INDEX idx_prayer_requests_booking_date ON prayer_requests(booking_date);
 
 GO
+CREATE TABLE deleted_parish (
+    deleted_id BIGINT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    parish_id BIGINT NOT NULL,
+    parish_name NVARCHAR(200) NOT NULL,
+    diocese NVARCHAR(200),
+    address_line1 NVARCHAR(255),
+    address_line2 NVARCHAR(255),
+    city NVARCHAR(100),
+    state NVARCHAR(100),
+    country NVARCHAR(100),
+    postal_code NVARCHAR(20),
+    phone NVARCHAR(20),
+    email NVARCHAR(255),
+    website_url NVARCHAR(500),
+    established_date DATE,
+    patron_saint NVARCHAR(200),
+    timezone NVARCHAR(50),
+    subscription_plan NVARCHAR(50),
+    subscription_expiry DATE,
+    deleted_reason NVARCHAR(255),
+    deleted_by BIGINT,
+    deleted_at DATETIME2 DEFAULT GETDATE(),
+    created_at DATETIME2,
+    updated_at DATETIME2,
+    CONSTRAINT FK_deleted_parish_deleted_by FOREIGN KEY (deleted_by) REFERENCES users(user_id)
+);
+
+-- Optional comment
+EXEC sys.sp_addextendedproperty 
+    @name = N'MS_Descriptio_
 
 PRINT 'Database schema created successfully!';
 ```

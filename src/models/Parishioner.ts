@@ -1,19 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import database from '../config/database';
 import { IParishioner } from '../types';
 import { ApiError } from '../utils/apiError';
 
 export class ParishionerModel {
-  /**
-   * Find parishioner by ID
-   */
+
   public static async findById(parishionerId: number): Promise<IParishioner | null> {
     const result = await database.executeQuery<IParishioner>(
       `SELECT
-         p.*,
-         u.first_name,
-         u.last_name,
-         u.email,
-         u.phone
+         p.parishioner_id, p.user_id, p.parish_id, p.ward_id, p.family_id, p.middle_name,
+         p.date_of_birth, p.gender, p.marital_status, p.occupation, p.baptism_date,
+         p.first_communion_date, p.confirmation_date, p.marriage_date, p.member_status,
+         p.photo_url, p.address_line1, p.address_line2, p.city, p.state, p.country,
+         p.postal_code, p.emergency_contact_name, p.emergency_contact_phone, p.notes,
+         p.registration_date, p.is_active, p.created_at, p.updated_at,
+         u.first_name, u.last_name, u.email, u.phone
        FROM parishioners p
        INNER JOIN users u ON p.user_id = u.user_id
        WHERE p.parishioner_id = @parishionerId`,
@@ -23,17 +24,16 @@ export class ParishionerModel {
     return result.recordset[0] || null;
   }
 
-  /**
-   * Find parishioner by user ID
-   */
   public static async findByUserId(userId: number): Promise<IParishioner | null> {
     const result = await database.executeQuery<IParishioner>(
       `SELECT
-         p.*,
-         u.first_name,
-         u.last_name,
-         u.email,
-         u.phone
+         p.parishioner_id, p.user_id, p.parish_id, p.ward_id, p.family_id, p.middle_name,
+         p.date_of_birth, p.gender, p.marital_status, p.occupation, p.baptism_date,
+         p.first_communion_date, p.confirmation_date, p.marriage_date, p.member_status,
+         p.photo_url, p.address_line1, p.address_line2, p.city, p.state, p.country,
+         p.postal_code, p.emergency_contact_name, p.emergency_contact_phone, p.notes,
+         p.registration_date, p.is_active, p.created_at, p.updated_at,
+         u.first_name, u.last_name, u.email, u.phone
        FROM parishioners p
        INNER JOIN users u ON p.user_id = u.user_id
        WHERE p.user_id = @userId`,
@@ -43,19 +43,22 @@ export class ParishionerModel {
     return result.recordset[0] || null;
   }
 
-  /**
-   * Find all parishioners by parish ID with pagination
-   */
-  public static async findByParishId(parishId: number, page: number = 1, limit: number = 20): Promise<IParishioner[]> {
+  public static async findByParishId(
+    parishId: number,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<IParishioner[]> {
     const offset = (page - 1) * limit;
 
     const result = await database.executeQuery<IParishioner>(
       `SELECT
-         p.*,
-         u.first_name,
-         u.last_name,
-         u.email,
-         u.phone
+         p.parishioner_id, p.user_id, p.parish_id, p.ward_id, p.family_id, p.middle_name,
+         p.date_of_birth, p.gender, p.marital_status, p.occupation, p.baptism_date,
+         p.first_communion_date, p.confirmation_date, p.marriage_date, p.member_status,
+         p.photo_url, p.address_line1, p.address_line2, p.city, p.state, p.country,
+         p.postal_code, p.emergency_contact_name, p.emergency_contact_phone, p.notes,
+         p.registration_date, p.is_active, p.created_at, p.updated_at,
+         u.first_name, u.last_name, u.email, u.phone
        FROM parishioners p
        INNER JOIN users u ON p.user_id = u.user_id
        WHERE p.parish_id = @parishId AND p.is_active = 1
@@ -67,19 +70,22 @@ export class ParishionerModel {
     return result.recordset;
   }
 
-  /**
-   * Find all parishioners by ward ID with pagination
-   */
-  public static async findByWardId(wardId: number, page: number = 1, limit: number = 20): Promise<IParishioner[]> {
+  public static async findByWardId(
+    wardId: number,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<IParishioner[]> {
     const offset = (page - 1) * limit;
 
     const result = await database.executeQuery<IParishioner>(
       `SELECT
-         p.*,
-         u.first_name,
-         u.last_name,
-         u.email,
-         u.phone
+         p.parishioner_id, p.user_id, p.parish_id, p.ward_id, p.family_id, p.middle_name,
+         p.date_of_birth, p.gender, p.marital_status, p.occupation, p.baptism_date,
+         p.first_communion_date, p.confirmation_date, p.marriage_date, p.member_status,
+         p.photo_url, p.address_line1, p.address_line2, p.city, p.state, p.country,
+         p.postal_code, p.emergency_contact_name, p.emergency_contact_phone, p.notes,
+         p.registration_date, p.is_active, p.created_at, p.updated_at,
+         u.first_name, u.last_name, u.email, u.phone
        FROM parishioners p
        INNER JOIN users u ON p.user_id = u.user_id
        WHERE p.ward_id = @wardId AND p.is_active = 1
@@ -91,17 +97,16 @@ export class ParishionerModel {
     return result.recordset;
   }
 
-  /**
-   * Find all parishioners by family ID
-   */
   public static async findByFamilyId(familyId: number): Promise<IParishioner[]> {
     const result = await database.executeQuery<IParishioner>(
       `SELECT
-         p.*,
-         u.first_name,
-         u.last_name,
-         u.email,
-         u.phone
+         p.parishioner_id, p.user_id, p.parish_id, p.ward_id, p.family_id, p.middle_name,
+         p.date_of_birth, p.gender, p.marital_status, p.occupation, p.baptism_date,
+         p.first_communion_date, p.confirmation_date, p.marriage_date, p.member_status,
+         p.photo_url, p.address_line1, p.address_line2, p.city, p.state, p.country,
+         p.postal_code, p.emergency_contact_name, p.emergency_contact_phone, p.notes,
+         p.registration_date, p.is_active, p.created_at, p.updated_at,
+         u.first_name, u.last_name, u.email, u.phone
        FROM parishioners p
        INNER JOIN users u ON p.user_id = u.user_id
        WHERE p.family_id = @familyId AND p.is_active = 1
@@ -112,9 +117,6 @@ export class ParishionerModel {
     return result.recordset;
   }
 
-  /**
-   * Count parishioners by parish ID
-   */
   public static async countByParishId(parishId: number): Promise<number> {
     const result = await database.executeQuery<{ count: number }>(
       `SELECT COUNT(*) as count FROM parishioners WHERE parish_id = @parishId AND is_active = 1`,
@@ -124,9 +126,6 @@ export class ParishionerModel {
     return result.recordset[0].count;
   }
 
-  /**
-   * Count parishioners by ward ID
-   */
   public static async countByWardId(wardId: number): Promise<number> {
     const result = await database.executeQuery<{ count: number }>(
       `SELECT COUNT(*) as count FROM parishioners WHERE ward_id = @wardId AND is_active = 1`,
@@ -136,17 +135,16 @@ export class ParishionerModel {
     return result.recordset[0].count;
   }
 
-  /**
-   * Get all parishioners for a parish (no pagination)
-   */
   public static async getAllByParish(parishId: number): Promise<IParishioner[]> {
     const result = await database.executeQuery<IParishioner>(
       `SELECT
-         p.*,
-         u.first_name,
-         u.last_name,
-         u.email,
-         u.phone
+         p.parishioner_id, p.user_id, p.parish_id, p.ward_id, p.family_id, p.middle_name,
+         p.date_of_birth, p.gender, p.marital_status, p.occupation, p.baptism_date,
+         p.first_communion_date, p.confirmation_date, p.marriage_date, p.member_status,
+         p.photo_url, p.address_line1, p.address_line2, p.city, p.state, p.country,
+         p.postal_code, p.emergency_contact_name, p.emergency_contact_phone, p.notes,
+         p.registration_date, p.is_active, p.created_at, p.updated_at,
+         u.first_name, u.last_name, u.email, u.phone
        FROM parishioners p
        INNER JOIN users u ON p.user_id = u.user_id
        WHERE p.parish_id = @parishId AND p.is_active = 1
@@ -157,9 +155,6 @@ export class ParishionerModel {
     return result.recordset;
   }
 
-  /**
-   * Create a new parishioner
-   */
   public static async create(parishionerData: {
     user_id: number;
     parish_id: number;
@@ -187,13 +182,11 @@ export class ParishionerModel {
     notes?: string;
     registration_date?: Date;
   }): Promise<IParishioner> {
-    // Build dynamic INSERT query
     const fields: string[] = ['user_id', 'parish_id'];
     const params: Record<string, any> = {
       user_id: parishionerData.user_id,
       parish_id: parishionerData.parish_id,
     };
-
     // Add optional fields
     if (parishionerData.ward_id !== undefined) {
       fields.push('ward_id');
@@ -290,7 +283,6 @@ export class ParishionerModel {
 
     const fieldNames = fields.join(', ');
     const fieldParams = fields.map((f) => `@${f}`).join(', ');
-
     const result = await database.executeQuery<{ parishioner_id: number }>(
       `INSERT INTO parishioners (${fieldNames})
        OUTPUT INSERTED.parishioner_id
@@ -308,12 +300,11 @@ export class ParishionerModel {
     return parishioner;
   }
 
-  /**
-   * Update parishioner
-   */
   public static async update(
     parishionerId: number,
-    updates: Partial<Omit<IParishioner, 'parishioner_id' | 'user_id' | 'parish_id' | 'created_at' | 'updated_at'>>
+    updates: Partial<
+      Omit<IParishioner, 'parishioner_id' | 'user_id' | 'parish_id' | 'created_at' | 'updated_at'>
+    >
   ): Promise<IParishioner> {
     const existingParishioner = await this.findById(parishionerId);
     if (!existingParishioner) {
@@ -333,7 +324,6 @@ export class ParishionerModel {
     if (updateFields.length === 0) {
       return existingParishioner;
     }
-
     await database.executeQuery(
       `UPDATE parishioners SET ${updateFields.join(', ')}, updated_at = GETDATE()
        WHERE parishioner_id = @parishionerId`,
@@ -348,9 +338,6 @@ export class ParishionerModel {
     return updatedParishioner;
   }
 
-  /**
-   * Delete parishioner (soft delete)
-   */
   public static async delete(parishionerId: number): Promise<void> {
     const parishioner = await this.findById(parishionerId);
     if (!parishioner) {
@@ -363,9 +350,6 @@ export class ParishionerModel {
     );
   }
 
-  /**
-   * Search parishioners by name within a parish
-   */
   public static async search(parishId: number, searchTerm: string): Promise<IParishioner[]> {
     const result = await database.executeQuery<IParishioner>(
       `SELECT p.* FROM parishioners p

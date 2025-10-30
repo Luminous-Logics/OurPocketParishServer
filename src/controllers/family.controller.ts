@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response, NextFunction } from 'express';
 import { FamilyModel } from '../models/Family';
 import { ParishModel } from '../models/Parish';
@@ -38,7 +39,7 @@ export class FamilyController {
       const families = await FamilyModel.findByParishId(parishId, page, limit);
       const totalRecords = await FamilyModel.countByParishId(parishId);
       const totalPages = Math.ceil(totalRecords / limit);
-
+      
       res.json({
         success: true,
         data: families,
@@ -151,7 +152,6 @@ export class FamilyController {
   public static async create(req: IAuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const familyData = req.body;
-      console.log(familyData,"familyDatainnn")
       // Verify parish exists
       const parish = await ParishModel.findById(familyData.parish_id);
       if (!parish) {

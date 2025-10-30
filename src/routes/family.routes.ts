@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { FamilyController } from '../controllers/family.controller';
 import { validate } from '../middleware/validate';
-import { authenticate, requireChurchAdmin } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
+import { requirePermission } from '../middleware/permission';
 import {
   createFamilySchema,
   updateFamilySchema,
@@ -58,7 +59,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/parish/:parishId', validate(familiesByParishSchema), FamilyController.getByParishId);
+router.get('/parish/:parishId', authenticate, requirePermission('VIEW_FAMILIES'), validate(familiesByParishSchema), FamilyController.getByParishId);
 
 /**
  * @swagger
@@ -90,7 +91,7 @@ router.get('/parish/:parishId', validate(familiesByParishSchema), FamilyControll
  *                   items:
  *                     $ref: '#/components/schemas/Family'
  */
-router.get('/parish/:parishId/all', FamilyController.getAllByParish);
+router.get('/parish/:parishId/all', authenticate, requirePermission('VIEW_FAMILIES'), FamilyController.getAllByParish);
 
 /**
  * @swagger
@@ -128,7 +129,7 @@ router.get('/parish/:parishId/all', FamilyController.getAllByParish);
  *                   items:
  *                     $ref: '#/components/schemas/Family'
  */
-router.get('/parish/:parishId/search', validate(searchFamilySchema), FamilyController.search);
+router.get('/parish/:parishId/search', authenticate, requirePermission('VIEW_FAMILIES'), validate(searchFamilySchema), FamilyController.search);
 
 /**
  * @swagger
@@ -173,7 +174,7 @@ router.get('/parish/:parishId/search', validate(searchFamilySchema), FamilyContr
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/ward/:wardId', validate(familiesByWardSchema), FamilyController.getByWardId);
+router.get('/ward/:wardId', authenticate, requirePermission('VIEW_FAMILIES'), validate(familiesByWardSchema), FamilyController.getByWardId);
 
 /**
  * @swagger
@@ -209,7 +210,7 @@ router.get('/ward/:wardId', validate(familiesByWardSchema), FamilyController.get
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate(familyIdSchema), FamilyController.getById);
+router.get('/:id', authenticate, requirePermission('VIEW_FAMILIES'), validate(familyIdSchema), FamilyController.getById);
 
 /**
  * @swagger
@@ -372,7 +373,7 @@ router.get('/:id', validate(familyIdSchema), FamilyController.getById);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/bulk-create', authenticate, requireChurchAdmin, validate(bulkCreateSchema), FamilyController.bulkCreate);
+router.post('/bulk-create', authenticate, requirePermission('MANAGE_FAMILIES'), validate(bulkCreateSchema), FamilyController.bulkCreate);
 
 /**
  * @swagger
@@ -446,7 +447,7 @@ router.post('/bulk-create', authenticate, requireChurchAdmin, validate(bulkCreat
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/bulk-upload-csv', authenticate, requireChurchAdmin, uploadCSV.single('file'), FamilyController.bulkUploadCSV);
+router.post('/bulk-upload-csv', authenticate, requirePermission('MANAGE_FAMILIES'), uploadCSV.single('file'), FamilyController.bulkUploadCSV);
 
 /**
  * @swagger
@@ -498,7 +499,7 @@ router.post('/bulk-upload-csv', authenticate, requireChurchAdmin, uploadCSV.sing
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authenticate, requireChurchAdmin, validate(createFamilySchema), FamilyController.create);
+router.post('/', authenticate, requirePermission('MANAGE_FAMILIES'), validate(createFamilySchema), FamilyController.create);
 
 /**
  * @swagger
@@ -545,7 +546,7 @@ router.post('/', authenticate, requireChurchAdmin, validate(createFamilySchema),
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', authenticate, requireChurchAdmin, validate(familyIdSchema), validate(updateFamilySchema), FamilyController.update);
+router.put('/:id', authenticate, requirePermission('MANAGE_FAMILIES'), validate(familyIdSchema), validate(updateFamilySchema), FamilyController.update);
 
 /**
  * @swagger
@@ -584,6 +585,6 @@ router.put('/:id', authenticate, requireChurchAdmin, validate(familyIdSchema), v
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', authenticate, requireChurchAdmin, validate(familyIdSchema), FamilyController.delete);
+router.delete('/:id', authenticate, requirePermission('MANAGE_FAMILIES'), validate(familyIdSchema), FamilyController.delete);
 
 export default router;

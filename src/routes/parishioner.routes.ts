@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { ParishionerController } from '../controllers/parishioner.controller';
 import { WardController } from '../controllers/ward.controller';
 import { validate } from '../middleware/validate';
-import { authenticate, requireChurchAdmin } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
+import { requirePermission } from '../middleware/permission';
 import {
   createParishionerSchema,
   updateParishionerSchema,
@@ -58,7 +59,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/parish/:parishId', validate(parishionersByParishSchema), ParishionerController.getByParishId);
+router.get('/parish/:parishId', authenticate, requirePermission('VIEW_PARISHIONERS'), validate(parishionersByParishSchema), ParishionerController.getByParishId);
 
 /**
  * @swagger
@@ -90,7 +91,7 @@ router.get('/parish/:parishId', validate(parishionersByParishSchema), Parishione
  *                   items:
  *                     $ref: '#/components/schemas/Parishioner'
  */
-router.get('/parish/:parishId/all', ParishionerController.getAllByParish);
+router.get('/parish/:parishId/all', authenticate, requirePermission('VIEW_PARISHIONERS'), ParishionerController.getAllByParish);
 
 /**
  * @swagger
@@ -128,7 +129,7 @@ router.get('/parish/:parishId/all', ParishionerController.getAllByParish);
  *                   items:
  *                     $ref: '#/components/schemas/Parishioner'
  */
-router.get('/parish/:parishId/search', validate(searchParishionerSchema), ParishionerController.search);
+router.get('/parish/:parishId/search', authenticate, requirePermission('VIEW_PARISHIONERS'), validate(searchParishionerSchema), ParishionerController.search);
 
 /**
  * @swagger
@@ -173,7 +174,7 @@ router.get('/parish/:parishId/search', validate(searchParishionerSchema), Parish
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/ward/:wardId', validate(parishionersByWardSchema), ParishionerController.getByWardId);
+router.get('/ward/:wardId', authenticate, requirePermission('VIEW_PARISHIONERS'), validate(parishionersByWardSchema), ParishionerController.getByWardId);
 
 /**
  * @swagger
@@ -211,7 +212,7 @@ router.get('/ward/:wardId', validate(parishionersByWardSchema), ParishionerContr
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/family/:familyId', validate(parishionersByFamilySchema), ParishionerController.getByFamilyId);
+router.get('/family/:familyId', authenticate, requirePermission('VIEW_PARISHIONERS'), validate(parishionersByFamilySchema), ParishionerController.getByFamilyId);
 
 /**
  * @swagger
@@ -247,7 +248,7 @@ router.get('/family/:familyId', validate(parishionersByFamilySchema), Parishione
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate(parishionerIdSchema), ParishionerController.getById);
+router.get('/:id', authenticate, requirePermission('VIEW_PARISHIONERS'), validate(parishionerIdSchema), ParishionerController.getById);
 
 /**
  * @swagger
@@ -299,7 +300,7 @@ router.get('/:id', validate(parishionerIdSchema), ParishionerController.getById)
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authenticate, requireChurchAdmin, validate(createParishionerSchema), ParishionerController.create);
+router.post('/', authenticate, requirePermission('CREATE_PARISHIONER'), validate(createParishionerSchema), ParishionerController.create);
 
 /**
  * @swagger
@@ -346,7 +347,7 @@ router.post('/', authenticate, requireChurchAdmin, validate(createParishionerSch
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', authenticate, requireChurchAdmin, validate(parishionerIdSchema), validate(updateParishionerSchema), ParishionerController.update);
+router.put('/:id', authenticate, requirePermission('EDIT_PARISHIONER'), validate(parishionerIdSchema), validate(updateParishionerSchema), ParishionerController.update);
 
 /**
  * @swagger
@@ -385,7 +386,7 @@ router.put('/:id', authenticate, requireChurchAdmin, validate(parishionerIdSchem
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', authenticate, requireChurchAdmin, validate(parishionerIdSchema), ParishionerController.delete);
+router.delete('/:id', authenticate, requirePermission('DELETE_PARISHIONER'), validate(parishionerIdSchema), ParishionerController.delete);
 
 /**
  * @swagger
@@ -417,6 +418,6 @@ router.delete('/:id', authenticate, requireChurchAdmin, validate(parishionerIdSc
  *                   items:
  *                     type: object
  */
-router.get('/:parishionerId/ward-roles', WardController.getParishionerWardRoles);
+router.get('/:parishionerId/ward-roles', authenticate, requirePermission('VIEW_PARISHIONERS'), WardController.getParishionerWardRoles);
 
 export default router;

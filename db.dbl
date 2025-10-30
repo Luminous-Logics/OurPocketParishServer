@@ -557,3 +557,35 @@ Table prayer_requests {
 
   Note: 'Prayer requests submitted by parishioners'
 }
+
+// =====================================================
+// DELETED PARISHES (ARCHIVE TABLE)
+// =====================================================
+
+Table deleted_parish {
+  deleted_id bigint [pk, increment, not null]
+  parish_id bigint [not null]
+  parish_name nvarchar(200) [not null]
+  diocese nvarchar(200)
+  address_line1 nvarchar(255)
+  address_line2 nvarchar(255)
+  city nvarchar(100)
+  state nvarchar(100)
+  country nvarchar(100)
+  postal_code nvarchar(20)
+  phone nvarchar(20)
+  email nvarchar(255)
+  website_url nvarchar(500)
+  established_date date
+  patron_saint nvarchar(200)
+  timezone nvarchar(50)
+  subscription_plan nvarchar(50)
+  subscription_expiry date
+  deleted_reason nvarchar(255)
+  deleted_by bigint [ref: > users.user_id]
+  deleted_at datetime2 [default: `getdate()`]
+  created_at datetime2
+  updated_at datetime2
+
+  Note: 'Archived parishes that have been deleted from the system'
+}

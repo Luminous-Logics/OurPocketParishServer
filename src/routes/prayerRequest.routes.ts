@@ -3,10 +3,7 @@ import { PrayerRequestController } from '../controllers/prayerRequest.controller
 import { validate } from '../middleware/validate';
 import { authenticate } from '../middleware/auth';
 import { requirePermission } from '../middleware/permission';
-import {
-  createPrayerRequestSchema,
-  parishIdSchema,
-} from '../validators/prayerRequest.validator';
+import { createPrayerRequestSchema, parishIdSchema } from '../validators/prayerRequest.validator';
 
 const router = Router();
 
@@ -43,7 +40,7 @@ const router = Router();
 router.get(
   '/parish/:parishId/active',
   authenticate,
-  requirePermission('prayers.view'),
+  requirePermission('VIEW_PRAYER_REQUESTS'),
   validate(parishIdSchema),
   PrayerRequestController.getActiveRequests
 );
@@ -81,7 +78,7 @@ router.get(
 router.get(
   '/parish/:parishId/past',
   authenticate,
-  requirePermission('prayers.view'),
+  requirePermission('VIEW_PRAYER_REQUESTS'),
   validate(parishIdSchema),
   PrayerRequestController.getPastRequests
 );
@@ -159,7 +156,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  requirePermission('prayers.create'),
+  requirePermission('CREATE_PRAYER_REQUEST'),
   validate(createPrayerRequestSchema),
   PrayerRequestController.create
 );
@@ -200,7 +197,7 @@ router.post(
 router.patch(
   '/:id/approve',
   authenticate,
-  requirePermission('prayers.manage'),
+  requirePermission('MANAGE_PRAYER_REQUESTS'),
   PrayerRequestController.approve
 );
 
@@ -240,7 +237,7 @@ router.patch(
 router.patch(
   '/:id/close',
   authenticate,
-  requirePermission('prayers.manage'),
+  requirePermission('MANAGE_PRAYER_REQUESTS'),
   PrayerRequestController.close
 );
 
@@ -287,7 +284,7 @@ router.patch(
 router.post(
   '/auto-archive',
   authenticate,
-  requirePermission('prayers.manage'),
+  requirePermission('MANAGE_PRAYER_REQUESTS'),
   PrayerRequestController.manualArchive
 );
 
